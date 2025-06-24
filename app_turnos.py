@@ -74,7 +74,7 @@ def to_excel(df):
 st.download_button("📥 Descargar Excel", data=to_excel(df), file_name="turnos_6x2.xlsx", mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
 
 
-# Calcular resumen de horas por operador por semana
+# Calcular resumen de horas por operador por semana calendario (lunes a domingo)
 st.subheader("📊 Resumen semanal de horas")
 
 # Definir duración por tipo de turno
@@ -82,23 +82,26 @@ duraciones = {'T1': 8, 'T2': 8, 'T3': 8, 'X': 0, 'V': 0}
 nocturno_turno = 'T3'
 
 df_horas = df.copy()
-df_horas['Semana'] = df_horas['Fecha'].dt.isocalendar().week
+
+# Marcar semana ISO real (lunes a domingo)
+df_horas['Semana'] = df_horas['Fecha'].dt.to_period("W").apply(lambda r: r.start_time)
 
 # Calcular horas por día por operador
 for op in ops:
     df_horas[op + '_Horas'] = df_horas[op].map(duraciones)
     df_horas[op + '_Nocturnas'] = df_horas[op].apply(lambda x: 8 if x == nocturno_turno else 0)
     df_horas[op + '_Dominicales'] = df_horas.apply(lambda row: 8 if row['Domingo'] and row[op] in ['T1','T2','T3'] else 0, axis=1)
-    df_horas[op + '_Extras'] = 0  # Se calculan después por semana
+    df_horas[op + '_Dias'] = df_horas[op].apply(lambda x: 1 if x in ['T1','T2','T3'] else 0)
 
 # Agrupar por semana
 resumen = df_horas.groupby('Semana').agg({
     **{op + '_Horas': 'sum' for op in ops},
     **{op + '_Nocturnas': 'sum' for op in ops},
-    **{op + '_Dominicales': 'sum' for op in ops}
+    **{op + '_Dominicales': 'sum' for op in ops},
+    **{op + '_Dias': 'sum' for op in ops}
 }).reset_index()
 
-# Calcular horas extras (>46h por semana)
+# Calcular horas extras
 for op in ops:
     resumen[op + '_Extras'] = resumen[op + '_Horas'].apply(lambda x: max(0, x - 46))
 
