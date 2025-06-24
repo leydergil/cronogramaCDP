@@ -11,7 +11,7 @@ st.title("🗓️ App de Turnos - Modelo 6x2")
 # --- Inputs ---
 year = st.sidebar.number_input("Año", min_value=2024, max_value=2030, value=2025)
 month = st.sidebar.selectbox("Mes", list(range(1,13)), format_func=lambda x: datetime(year, x,1).strftime("%B"))
-ops = ["Op1","Op2","Op3","Op4"]
+ops = ['Gcastro', 'Jchavez', 'Cleon', 'Wavila']
 
 # Vacaciones
 st.sidebar.subheader("Vacaciones (rango por operador)")
