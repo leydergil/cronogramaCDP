@@ -1,4 +1,3 @@
-# app_turnos.py
 
 import streamlit as st
 import pandas as pd
@@ -19,7 +18,7 @@ st.sidebar.subheader("Vacaciones")
 vac_dict = {}
 for op in ops:
     vac_dict[op] = st.sidebar.date_input(f"{op}: fecha inicio y fin", [])
-    
+
 # Festivos
 col_holidays = holidays.CountryHoliday('CO', years=[year])
 
@@ -44,7 +43,6 @@ def generar_turnos():
     for i, d in enumerate(dates):
         base = pattern[i % len(pattern)].copy()
         for j, op in enumerate(ops):
-            # Check vacaciones
             for v in vac_dict[op]:
                 if isinstance(v, datetime) and d.date() >= v and d.date() <= v:
                     base[j] = 'V'
