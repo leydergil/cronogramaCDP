@@ -11,27 +11,36 @@ st.title("🗓️ App de Turnos - Modelo 6x2")
 # --- Inputs ---
 year = st.sidebar.number_input("Año", min_value=2024, max_value=2030, value=2025)
 month = st.sidebar.selectbox("Mes", list(range(1,13)), format_func=lambda x: datetime(year, x,1).strftime("%B"))
-ops = ['Gcastro', 'Jchavez', 'Cleon', 'Wavila']
+ops = ["Op1","Op2","Op3","Op4"]
 
 
-# Novedades por operador
-st.sidebar.subheader("📝 Novedades (Vacaciones, Permisos, Incapacidades)")
+# --- Novedades desde formulario ---
+st.sidebar.subheader("📝 Agregar Novedades por Operador")
 
 tipos_novedad = ["Vacaciones", "Permiso", "Incapacidad"]
 novedades = []
 
-for op in ops:
-    for tipo in tipos_novedad:
-        rango = st.sidebar.date_input(f"{op} - {tipo}", [], key=f"{op}_{tipo}")
-        if isinstance(rango, list) and len(rango) == 2:
-            fechas = pd.date_range(rango[0], rango[1]).date
-            for f in fechas:
-                novedades.append({"Operador": op, "Fecha": f, "Tipo": tipo})
+with st.sidebar.form("form_novedades"):
+    operador_sel = st.selectbox("Operador", ops)
+    tipo_sel = st.selectbox("Tipo de novedad", tipos_novedad)
+    rango_sel = st.date_input("Rango de fechas", [])
+    submit = st.form_submit_button("Agregar novedad")
 
-# Organizar novedades en DataFrame
-df_novedades = pd.DataFrame(novedades, columns=["Operador", "Fecha", "Tipo"])
+    if submit and isinstance(rango_sel, list) and len(rango_sel) == 2:
+        fechas = pd.date_range(rango_sel[0], rango_sel[1]).date
+        for f in fechas:
+            novedades.append({"Operador": operador_sel, "Fecha": f, "Tipo": tipo_sel})
+        st.success(f"Novedad registrada: {tipo_sel} para {operador_sel} ({rango_sel[0]} a {rango_sel[1]})")
 
-# Vacaciones derivadas de novedades
+# Cargar historial si ya existen
+if "novedades_hist" not in st.session_state:
+    st.session_state["novedades_hist"] = []
+
+st.session_state["novedades_hist"].extend(novedades)
+df_novedades = pd.DataFrame(st.session_state["novedades_hist"], columns=["Operador", "Fecha", "Tipo"])
+st.sidebar.dataframe(df_novedades)
+
+# Procesar vacaciones desde novedades
 vac_dict = {op: [] for op in ops}
 for op in ops:
     vacaciones = df_novedades[(df_novedades["Operador"] == op) & (df_novedades["Tipo"] == "Vacaciones")]
