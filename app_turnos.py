@@ -29,7 +29,7 @@ for op in ops:
                 novedades.append({"Operador": op, "Fecha": f, "Tipo": tipo})
 
 # Organizar novedades en DataFrame
-df_novedades = pd.DataFrame(novedades)
+df_novedades = pd.DataFrame(novedades, columns=["Operador", "Fecha", "Tipo"])
 
 # Vacaciones derivadas de novedades
 vac_dict = {op: [] for op in ops}
