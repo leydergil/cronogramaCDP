@@ -13,7 +13,30 @@ year = st.sidebar.number_input("Año", min_value=2024, max_value=2030, value=202
 month = st.sidebar.selectbox("Mes", list(range(1,13)), format_func=lambda x: datetime(year, x,1).strftime("%B"))
 ops = ['Gcastro', 'Jchavez', 'Cleon', 'Wavila']
 
-# Vacaciones
+
+# Novedades por operador
+st.sidebar.subheader("📝 Novedades (Vacaciones, Permisos, Incapacidades)")
+
+tipos_novedad = ["Vacaciones", "Permiso", "Incapacidad"]
+novedades = []
+
+for op in ops:
+    for tipo in tipos_novedad:
+        rango = st.sidebar.date_input(f"{op} - {tipo}", [], key=f"{op}_{tipo}")
+        if isinstance(rango, list) and len(rango) == 2:
+            fechas = pd.date_range(rango[0], rango[1]).date
+            for f in fechas:
+                novedades.append({"Operador": op, "Fecha": f, "Tipo": tipo})
+
+# Organizar novedades en DataFrame
+df_novedades = pd.DataFrame(novedades)
+
+# Vacaciones derivadas de novedades
+vac_dict = {op: [] for op in ops}
+for op in ops:
+    vacaciones = df_novedades[(df_novedades["Operador"] == op) & (df_novedades["Tipo"] == "Vacaciones")]
+    vac_dict[op] = vacaciones["Fecha"].tolist()
+
 st.sidebar.subheader("Vacaciones (rango por operador)")
 vac_dict = {}
 for op in ops:
